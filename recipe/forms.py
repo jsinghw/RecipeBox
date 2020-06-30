@@ -5,7 +5,7 @@ from recipe.models import Author
 class AddAuthorForm(forms.ModelForm):
     class Meta():
         model = Author
-        fields = ['name', 'bio']
+        fields = ['name', 'user', 'bio']
 
 
 class AddRecipeForm(forms.Form):
