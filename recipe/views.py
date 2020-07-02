@@ -3,7 +3,7 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 
-
+from django.contrib.auth.models import User
 from recipe.models import Recipe, Author
 from recipe.forms import AddRecipeForm, AddAuthorForm, LoginForm
 
@@ -20,12 +20,12 @@ def login_view(request):
                 request,
                 username=data['username'],
                 password=data['password']
-                )
+            )
             if user:
                 login(request, user)
                 return HttpResponseRedirect(
                     request.GET.get('next', reverse('homepage'))
-                    )
+                )
     form = LoginForm()
     return render(request, html, {'form': form})
 
@@ -55,7 +55,7 @@ def add_recipe(request):
                 description=data['description'],
                 time_required=data['time_required'],
                 instructions=data['instructions'],
-                )
+            )
         return HttpResponseRedirect(reverse('homepage'))
     form = AddRecipeForm()
     return render(request, html, {'form': form})
@@ -66,9 +66,17 @@ def add_author(request):
     html = "generic_form.html"
 
     if request.method == "POST":
-        form = AddAuthorForm(request.POST)
-        form.save()
-        return HttpResponseRedirect(reverse('homepage'))
+        if request.POST['password1'] == request.POST['password2']:
+            form = AddAuthorForm(request.POST)
+            if form.is_valid():
+                data = form.cleaned_data
+                Author.objects.create(
+                    name=data['name'],
+                    user=User.objects.create_user(
+                        username=data['username'], password=data['password1']),
+                    bio=data['bio']
+                )
+            return HttpResponseRedirect(reverse('homepage'))
 
     form = AddAuthorForm()
     return render(request, html, {'form': form})
